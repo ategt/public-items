@@ -4,6 +4,7 @@ from webpmux_info import WebpInfo
 import subprocess
 import uuid
 import sys
+import re
 import os
 
 if len(sys.argv) < 3 or {"-h", r"/?", "--help"} & set(sys.argv):
@@ -47,17 +48,29 @@ def demux(frameNumber):
 
     return stdout, stderr
 
+def cleanupOutput(line):
+    return line.decode("UTF-8").replace("\n","-").replace("\r","")
+
 def saveImage(path, data):
     with open(path, 'wb') as handle:
         handle.write(data)
 
+SAVED_FILE_PATTERN = re.compile(r"Saved\s+file\s+\-\s+\((?P<bytes>\d+)\s+bytes\)", re.IGNORECASE)
+DECOMPRESSOR_PATTERN = re.compile(r"Decoded\s+\-\.\s+Dimensions\:\s+(?P<width>\d+)\s+x\s+(?P<height>\d+)\s+\.\s+Format\:\s+(?P<format>\w+)\.\s+Now\s+saving\.\.\.\-Saved\s+to\s+stdout", re.IGNORECASE)
+
 for frame in frames:
     frameNumber = frame['No']
 
-    webpImageData, stderr1 = demux(frameNumber)
-    pngImageData, stderr2 = decompress(webpImageData)
+    webpImageData, demux_info = demux(frameNumber)
+    pngImageData, decompress_info = decompress(webpImageData)
 
-    print("\r", stderr1.decode("UTF-8").replace("\n","-").replace("\r",""),"\t=2=", stderr2.decode("UTF-8").replace("\n", "-").replace("\r",""), end="")
+    demux_screen = cleanupOutput(demux_info)
+    decompress_screen = cleanupOutput(decompress_info)
+
+    bytes_saved = int(SAVED_FILE_PATTERN.match(demux_screen).groupdict()['bytes'])
+    decompressor_data = DECOMPRESSOR_PATTERN.match(decompress_screen).groupdict()
+
+    print("\r", f"Working on Frame {frameNumber} - {bytes_saved} bytes\t Dimensions: {decompressor_data['width']} x {decompressor_data['height']}\t Format: {decompressor_data['format']}", end="")
     
     output_png_path = os.path.join(temp_directory,f"frame-{frameNumber}.png")
     saveImage(output_png_path, pngImageData)
@@ -66,14 +79,20 @@ for frame in frames:
 input_png_files = os.path.join(temp_directory, "frame-*.png")
 gifski_command = [gifski_path, input_png_files, "--fps", "20", "--quality", "90", "--output", "-"]
 
-print("\nGenerating GIF...")
+print("\nGenerating GIF...", end="\r")
 
 gifski_output = subprocess.check_output(gifski_command)
 
+print("Saving GIF", end="\r")
+
 with open(output_gif_path, 'wb') as handle:
     handle.write(gifski_output)
+
+print("Cleaning up", end="\r")
 
 for file in pngs:
     os.remove(file)
 
 os.rmdir(temp_directory)
+
+print("Done!")
