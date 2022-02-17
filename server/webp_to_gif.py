@@ -79,20 +79,20 @@ for frame in frames:
 input_png_files = os.path.join(temp_directory, "frame-*.png")
 gifski_command = [gifski_path, input_png_files, "--fps", "20", "--quality", "90", "--output", "-"]
 
-print("\nGenerating GIF...", end="\r")
+print("\nGenerating GIF...", " " * 60, end="\r")
 
 gifski_output = subprocess.check_output(gifski_command)
 
-print("Saving GIF", end="\r")
+print("Saving GIF", " " * 60, end="\r")
 
 with open(output_gif_path, 'wb') as handle:
     handle.write(gifski_output)
 
-print("Cleaning up", end="\r")
+print("Cleaning up", " " * 60, end="\r")
 
 for file in pngs:
     os.remove(file)
 
 os.rmdir(temp_directory)
 
-print("Done!")
+print("Done!", " " * 60)
