@@ -29,6 +29,14 @@ webpInfo = WebpInfo(webpmuxPath)
 info = webpInfo.getInfo(sourceFile)
 frames = info['frames']
 
+durations = {frame['duration'] for frame in frames}
+
+if len(durations) > 1:
+    print("Variable duration animation; using best guess FrameRate. Result will be inconsistent with source.")
+
+duration = durations.pop()
+framesPerSecond = int(1000/duration)
+
 os.mkdir(temp_directory)
 pngs = list()
 
@@ -82,17 +90,17 @@ for frame in frames:
     pngs.append(output_png_path)
 
 input_png_files = os.path.join(temp_directory, "frame-*.png")
-gifski_command = [gifski_path, input_png_files, "--fps", "15", "--quality", "90", "--output", "-"]
+gifski_command = [gifski_path, input_png_files, "--fps", str(framesPerSecond), "--quality", "90", "--output", "-"]
 
-print("\nGenerating GIF...", " " * 60, end="\r")
+print("\n Generating GIF...", " " * 60, end="\r")
 
 gifski_output = subprocess.check_output(gifski_command)
 
-print("Saving GIF", " " * 60, end="\r")
+print(" Saving GIF", " " * 60, end="\r")
 
 saveImage(output_gif_path, gifski_output)
 
-print("Cleaning up", " " * 60, end="\r")
+print(" Cleaning up", " " * 60, end="\r")
 
 cleanUp()
 
