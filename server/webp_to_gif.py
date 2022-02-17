@@ -20,6 +20,7 @@ if os.path.exists(output_gif_path):
 libwebp_directory = r"C:\Users\ATeg\Downloads\libwebp-1.2.2-windows-x64" if len(sys.argv) < 4 else sys.argv[3]
 webpmuxPath = os.path.join(libwebp_directory, "bin", "webpmux.exe")
 dwebpPath = os.path.join(libwebp_directory, "bin", "dwebp.exe")
+gifski_path = os.path.join("..", "gifski.exe")
 
 temp_directory = f"temp-directory-{uuid.uuid4().hex}"
 
@@ -47,7 +48,6 @@ for frame in frames:
 
     pngs.append(output_png_path)
 
-gifski_path = os.path.join("..", "gifski.exe")
 input_png_files = os.path.join(temp_directory, "frame-*.png")
 gifski_command = [gifski_path, input_png_files, "--fps", "20", "--quality", "90", "--output", "-"]
 
