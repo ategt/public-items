@@ -30,8 +30,13 @@ info = webpInfo.getInfo(sourceFile)
 frames = info['frames']
 
 os.mkdir(temp_directory)
-
 pngs = list()
+
+def cleanUp():
+    for file in pngs:
+        os.remove(file)
+
+    os.rmdir(temp_directory)
 
 def decompress(webpImageData):
     webp_to_png_command = [dwebpPath, "-o", "-", "--", "-"]
@@ -77,7 +82,7 @@ for frame in frames:
     pngs.append(output_png_path)
 
 input_png_files = os.path.join(temp_directory, "frame-*.png")
-gifski_command = [gifski_path, input_png_files, "--fps", "20", "--quality", "90", "--output", "-"]
+gifski_command = [gifski_path, input_png_files, "--fps", "15", "--quality", "90", "--output", "-"]
 
 print("\nGenerating GIF...", " " * 60, end="\r")
 
@@ -85,14 +90,10 @@ gifski_output = subprocess.check_output(gifski_command)
 
 print("Saving GIF", " " * 60, end="\r")
 
-with open(output_gif_path, 'wb') as handle:
-    handle.write(gifski_output)
+saveImage(output_gif_path, gifski_output)
 
 print("Cleaning up", " " * 60, end="\r")
 
-for file in pngs:
-    os.remove(file)
-
-os.rmdir(temp_directory)
+cleanUp()
 
 print("Done!", " " * 60)

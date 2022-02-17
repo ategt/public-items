@@ -1,7 +1,6 @@
->
-/
-__pychache__
-developer
-__pycache__
-/
+__pycache__/
+developer/
+other/
+
 gifski.exe
+*.dll 
